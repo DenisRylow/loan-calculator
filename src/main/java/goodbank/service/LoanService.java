@@ -5,7 +5,6 @@ import goodbank.dto.AnnuityLoanDto;
 import goodbank.dto.AnnuityLoanRequest;
 import goodbank.dto.AvailableLoan;
 import goodbank.dto.MonthlyLoanStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -13,11 +12,11 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,13 +43,13 @@ public class LoanService {
 
     private List<Integer> getPossibleTerms() {
         return Stream
-                .iterate(LoanConstants.MINIMAL_LOAN_TERM, (term) -> term + 12)
+                .iterate(LoanConstants.MINIMAL_LOAN_TERM, (term) -> term + LoanConstants.NUMBER_OF_MONTHS_IN_YEAR)
                 .limit(5)
                 .collect(Collectors.toList());
     }
 
     public AnnuityLoanDto calculateLoan(@Valid AnnuityLoanRequest annuityLoanRequest) {
-        GregorianCalendar calendar = new GregorianCalendar(1,0,1);
+        GregorianCalendar calendar = new GregorianCalendar(1, Calendar.JANUARY,1);
         BigDecimal totalMonthlyPayment = calculateMonthlyPayment(
                 annuityLoanRequest.getLoanedSum(),
                 annuityLoanRequest.getInterestRateInBasisPoints(),
@@ -72,22 +71,22 @@ public class LoanService {
             BigDecimal paymentToPrincipal = totalMonthlyPayment.subtract(interest);
             debt = debt.subtract(paymentToPrincipal);
             MonthlyLoanStatus monthlyLoanStatus = new MonthlyLoanStatus(
-                    calendar.get(1),
-                    calendar.get(2),
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
                     paymentToPrincipal,
                     interest,
                     debt,
                     totalPayment
             );
-            calendar.add(2,1);
+            calendar.add(Calendar.MONTH,1);
             list.add(monthlyLoanStatus);
         } while (++period < annuityLoanRequest.getLoanTerm());
 
         BigDecimal lastPeriodPrincipal = debt;
         BigDecimal lastPeriodInterest = totalMonthlyPayment.subtract(lastPeriodPrincipal);
         MonthlyLoanStatus monthlyLoanStatus = new MonthlyLoanStatus(
-                calendar.get(1),
-                calendar.get(2),
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
                 lastPeriodPrincipal,
                 lastPeriodInterest,
                 BigDecimal.ZERO,
@@ -106,9 +105,9 @@ public class LoanService {
      * @return payment per month
      */
     BigDecimal calculateMonthlyPayment(Long principal, Integer interestRate, Integer loanTerm) {
-        Objects.nonNull(principal);
-        Objects.nonNull(interestRate);
-        Objects.nonNull(loanTerm);
+        Objects.requireNonNull(principal);
+        Objects.requireNonNull(interestRate);
+        Objects.requireNonNull(loanTerm);
         double P = interestRate / ((double) 12 * 100 * 100); // Absolute interest rate.
         double x = principal * (P + P / (Math.pow(1 + P, loanTerm.doubleValue()) - 1));
         return BigDecimal.valueOf(x).setScale(2, RoundingMode.HALF_UP);
@@ -122,8 +121,8 @@ public class LoanService {
      * @return the amount of money paid towards the interest
      */
     BigDecimal calculateInterest(BigDecimal principal, Integer interestRate) {
-        Objects.nonNull(principal);
-        Objects.nonNull(interestRate);
+        Objects.requireNonNull(principal);
+        Objects.requireNonNull(interestRate);
         double P = interestRate / ((double) 12 * 100 * 100);
         return principal.multiply(BigDecimal.valueOf(P)).setScale(2, RoundingMode.HALF_UP);
     }

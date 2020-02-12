@@ -13,7 +13,7 @@ import org.springframework.web.context.request.WebRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @ControllerAdvice
@@ -22,7 +22,7 @@ public class ExceptionHandlingConfiguration {
     @ExceptionHandler(value = ConstraintViolationException.class)
     protected ResponseEntity<Object> handleValidationException(ConstraintViolationException ex, WebRequest request) {
         List<ApiError.Error> errors = new ArrayList<>();
-        for (ConstraintViolation exception : ex.getConstraintViolations()) {
+        for (ConstraintViolation<?> exception : ex.getConstraintViolations()) {
             ApiError.Error error = new ApiError.Error(
                     ErrorCodes.INPUT_DATA_VALIDATION_ERROR.toString(),
                     exception.getMessage()
@@ -37,7 +37,7 @@ public class ExceptionHandlingConfiguration {
 
     @ExceptionHandler(value = Exception.class)
     protected ResponseEntity<Object> handleCommonException(Exception ex, WebRequest request) {
-        ApiError apiError = new ApiError(Arrays.asList(new ApiError.Error(
+        ApiError apiError = new ApiError(Collections.singletonList(new ApiError.Error(
                 ErrorCodes.INTERNAL_SERVER_ERROR.toString(),
                 "Internal Error")
         ));

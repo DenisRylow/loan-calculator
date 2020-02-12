@@ -9,6 +9,8 @@ public final class LoanConstants {
     public static final int MINIMAL_LOAN_TERM = 12;
     public static final int MAXIMAL_LOAN_TERM = 60;
 
+    public static final int NUMBER_OF_MONTHS_IN_YEAR = 12;
+
     public static final long MINIMAL_LOAN_SUM = 100000L;
     public static final long MAXIMAL_LOAN_SUM = 5000000L;
 }

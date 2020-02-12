@@ -20,9 +20,6 @@ public class DivisableByConstraintValidator implements ConstraintValidator<Divis
         if (value == null) {
             return true;
         }
-        if (value % divisor == 0) {
-            return true;
-        }
-        return false;
+        return value % divisor == 0;
     }
 }

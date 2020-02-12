@@ -38,7 +38,7 @@ public class ControllerIntegrationTest extends AbstractTest {
                 new AnnuityLoanRequest(INTEREST_RATE, loan.getPossibleLoanTerms().get(0), loan.getMinLoanSum());
         MvcResult res2  = mockMvc
                 .perform(MockMvcRequestBuilders
-                        .get("/calculator/loans/annuity")
+                        .put("/calculator/loans/annuity")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(request)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -56,12 +56,12 @@ public class ControllerIntegrationTest extends AbstractTest {
                 new AnnuityLoanRequest(1600, -1, 222222L);
         MvcResult res2  = mockMvc
                 .perform(MockMvcRequestBuilders
-                        .get("/calculator/loans/annuity")
+                        .put("/calculator/loans/annuity")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(request)))
                 .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
-        Assert.assertTrue(res2.getResponse().getContentAsString().contains("status"));
+        Assert.assertTrue(res2.getResponse().getContentAsString().contains("code"));
     }
 
     @Test
@@ -70,11 +70,25 @@ public class ControllerIntegrationTest extends AbstractTest {
                 new AnnuityLoanRequest(1600, 24, 2L);
         MvcResult res2  = mockMvc
                 .perform(MockMvcRequestBuilders
-                        .get("/calculator/loans/annuity")
+                        .put("/calculator/loans/annuity")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(request)))
                 .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
-        Assert.assertTrue(res2.getResponse().getContentAsString().contains("status"));
+        Assert.assertTrue(res2.getResponse().getContentAsString().contains("code"));
+    }
+
+    @Test
+    public void testIncorrectRate() throws Exception {
+        AnnuityLoanRequest request =
+                new AnnuityLoanRequest(10, 24, 222222L);
+        MvcResult res2  = mockMvc
+                .perform(MockMvcRequestBuilders
+                        .put("/calculator/loans/annuity")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
+                .andReturn();
+        Assert.assertTrue(res2.getResponse().getContentAsString().contains("code"));
     }
 }

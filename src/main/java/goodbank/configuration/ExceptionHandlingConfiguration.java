@@ -1,6 +1,7 @@
 package goodbank.configuration;
 
 import goodbank.ApiError;
+import goodbank.ErrorCodes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +23,10 @@ public class ExceptionHandlingConfiguration {
     protected ResponseEntity<Object> handleValidationException(ConstraintViolationException ex, WebRequest request) {
         List<ApiError.Error> errors = new ArrayList<>();
         for (ConstraintViolation exception : ex.getConstraintViolations()) {
-            ApiError.Error error = new ApiError.Error("400", exception.getMessage());
+            ApiError.Error error = new ApiError.Error(
+                    ErrorCodes.INPUT_DATA_VALIDATION_ERROR.toString(),
+                    exception.getMessage()
+            );
             errors.add(error);
         }
         ApiError apiError = new ApiError(errors);
@@ -33,8 +37,10 @@ public class ExceptionHandlingConfiguration {
 
     @ExceptionHandler(value = Exception.class)
     protected ResponseEntity<Object> handleCommonException(Exception ex, WebRequest request) {
-        ApiError apiError =
-                new ApiError(Arrays.asList(new ApiError.Error("500", "Internal Error")));
+        ApiError apiError = new ApiError(Arrays.asList(new ApiError.Error(
+                ErrorCodes.INTERNAL_SERVER_ERROR.toString(),
+                "Internal Error")
+        ));
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).headers(headers).body(apiError);

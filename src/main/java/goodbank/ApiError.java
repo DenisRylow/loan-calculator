@@ -5,9 +5,6 @@ import lombok.Data;
 
 import java.util.List;
 
-/**
- * Wrapper for error response. Structure is inspired by JsonAPI.
- */
 @Data
 @AllArgsConstructor
 public class ApiError {
@@ -16,7 +13,7 @@ public class ApiError {
     @Data
     @AllArgsConstructor
     static public class Error {
-        private String status;
+        private String code;
         private String title;
     }
 }
